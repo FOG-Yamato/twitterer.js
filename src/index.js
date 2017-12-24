@@ -1,4 +1,4 @@
-const oauth = require('oauth')
-class Twitter {}
-
-module.exports = Twitter
+module.exports = {
+  Application: require('./Application'),
+  User: require('./User')
+}
