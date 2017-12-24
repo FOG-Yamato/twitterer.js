@@ -1,8 +1,6 @@
 const oauth = require('oauth')
 const request = require('axios')
 
-class Twitter {
-    
-}
+class Twitter {}
 
 module.exports = Twitter
