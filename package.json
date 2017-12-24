@@ -2,7 +2,7 @@
   "name": "twitter.js",
   "version": "0.0.1",
   "description": "A Twitter API wrapper",
-  "main": "index.js",
+  "main": "./src/index",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/FOG-Yamato/twitter.js/issues"
   },
-  "homepage": "https://github.com/FOG-Yamato/twitter.js#readme"
+  "homepage": "https://github.com/FOG-Yamato/twitter.js#readme",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "oauth": "^0.9.15"
+  }
 }
