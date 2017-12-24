@@ -1,7 +1,7 @@
-const { Oauth } = require('oauth')
+const { OAuth } = require('oauth')
 const baseURL = 'https://api.twitter.com/1.1/'
 
-class User extends Oauth {
+class User extends OAuth {
   constructor(appKey, appSecret, opts) {
     super(
       'https://api.twitter.com/oauth/request_token',
