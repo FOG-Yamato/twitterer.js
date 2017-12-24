@@ -22,10 +22,11 @@ class User extends OAuth {
   get(endpoint, opts) {
     return new Promise((resolve, reject) => {
       const { userToken, userSecret } =
-        opts.userToken && opts.userSecret ? opts : this
+        opts && opts.userToken && opts.userSecret ? opts : this
 
       let url = `${baseURL}${endpoint}.json`
-      if (opts.params) {
+
+      if (opts && opts.params) {
         const params = Object.entries(opts.params).map(pair => {
           return pair.map(text => encodeURIComponent(text)).join('=')
         })
