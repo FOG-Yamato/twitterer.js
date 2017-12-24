@@ -25,7 +25,6 @@
   },
   "homepage": "https://github.com/FOG-Yamato/twitter.js#readme",
   "dependencies": {
-    "axios": "^0.17.1",
     "node-fetch": "^1.7.3",
     "oauth": "^0.9.15"
   },
