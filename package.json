@@ -10,7 +10,14 @@
     "type": "git",
     "url": "git+https://github.com/FOG-Yamato/twitter.js.git"
   },
-  "keywords": ["twitter", "api", "rest", "streaming", "es6", "promise"],
+  "keywords": [
+    "twitter",
+    "api",
+    "rest",
+    "streaming",
+    "es6",
+    "promise"
+  ],
   "author": "FOG_Yamato",
   "license": "Apache-2.0",
   "bugs": {
@@ -19,6 +26,7 @@
   "homepage": "https://github.com/FOG-Yamato/twitter.js#readme",
   "dependencies": {
     "axios": "^0.17.1",
+    "node-fetch": "^1.7.3",
     "oauth": "^0.9.15"
   },
   "devDependencies": {
