@@ -23,7 +23,7 @@ class Application {
     return this.request(endpoint, { ...opts, method: 'DELETE' })
   }
 
-  async request(endpoint, opts) {
+  async request(endpoint, opts = {}) {
     if (endpoint !== AUTH_ENDPOINT) {
       if (!this.token) {
         try {

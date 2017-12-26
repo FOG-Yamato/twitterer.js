@@ -23,51 +23,34 @@ class User {
     this.userSecret = opts.userSecret || null
   }
 
-  get(endpoint, opts = {}) {
-    return new Promise((resolve, reject) => {
-      const url = this.buildURL(endpoint, opts.params, true)
-      this.session.get(
-        url,
-        this.userToken,
-        this.userSecret,
-        (err, body, res) => {
-          if (!err && res.statusCode == 200) {
-            let limits = {
-              'x-rate-limit-limit': res.headers['x-rate-limit-limit'],
-              'x-rate-limit-remaining': res.headers['x-rate-limit-remaining'],
-              'x-rate-limit-reset': res.headers['x-rate-limit-reset']
-            }
-            resolve({ body, limits })
-          } else {
-            reject({ err, res, body })
-          }
-        }
-      )
-    })
+  get(endpoint, opts) {
+    return this.request(endpoint, opts)
   }
 
-  post(endpoint, opts = {}) {
+  post(endpoint, opts) {
+    return this.request(endpoint, { ...opts, method: 'post' })
+  }
+
+  request(endpoint, opts = {}) {
+    const url = this.buildURL(endpoint, opts.params, true)
+    const { userToken, userSecret } =
+      opts.userToken && opts.userSecret ? opts : this
+
+    const args = [url, userToken, userSecret]
+    if (opts.method === 'post') {
+      args.push(opts.body || '', 'application/x-www-form-urlencoded')
+    }
+
     return new Promise((resolve, reject) => {
-      const url = this.buildURL(endpoint, opts.params, true)
-      this.session.post(
-        url,
-        this.userToken,
-        this.userSecret,
-        opts.body,
-        'application/x-www-form-urlencoded',
-        (err, body, res) => {
-          if (!err && res.statusCode == 200) {
-            let limits = {
-              'x-rate-limit-limit': res.headers['x-rate-limit-limit'],
-              'x-rate-limit-remaining': res.headers['x-rate-limit-remaining'],
-              'x-rate-limit-reset': res.headers['x-rate-limit-reset']
-            }
-            resolve({ body, limits })
-          } else {
-            reject({ err, res, body })
-          }
+      this.session[opts.method || 'get'](...args, (err, body, res) => {
+        if (err || res.statusCode !== 200) return reject({ err, res, body })
+        let limits = {
+          'x-rate-limit-limit': res.headers['x-rate-limit-limit'],
+          'x-rate-limit-remaining': res.headers['x-rate-limit-remaining'],
+          'x-rate-limit-reset': res.headers['x-rate-limit-reset']
         }
-      )
+        return resolve({ body, limits })
+      })
     })
   }
 
