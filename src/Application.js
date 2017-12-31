@@ -23,6 +23,7 @@ class Application {
     return this.request(endpoint, { ...opts, method: 'DELETE' })
   }
 
+  //Internal request method
   async request(endpoint, opts) {
     if (endpoint !== AUTH_ENDPOINT) {
       if (!this.token) {
@@ -33,13 +34,14 @@ class Application {
         }
       }
 
-      opts.headers = { ...opts.headers, Authorization: `Bearer ${this.token}` }
+      opts.headers = { ...opts.headers, Authorization: `Bearer ${this.token}`, 'User-Agent': 'twitter.js' }
     }
 
     const url = this.buildURL(endpoint, opts.params, true)
     return fetch(url, opts).then(res => res.json())
   }
 
+  // OAuth 2.0 authentication method
   async auth() {
     const encoded = Buffer.from(`${this.key}:${this.secret}`).toString('base64')
 
@@ -47,7 +49,8 @@ class Application {
       body: 'grant_type=client_credentials',
       headers: {
         Authorization: `Basic ${encoded}`,
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8.'
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8.',
+        'User-Agent': 'twitter.js'
       }
     })
 
@@ -56,6 +59,7 @@ class Application {
     return Promise.resolve(this)
   }
 
+  // Internal URL contructor helper method
   buildURL(url, params, dotJSON) {
     if (dotJSON && url !== AUTH_ENDPOINT) url += '.json'
 
