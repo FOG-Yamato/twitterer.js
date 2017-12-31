@@ -1,5 +1,4 @@
 const fetch = require('node-fetch')
-const { URL } = require('url')
 const { buildURL } = require('./Util')
 
 const BASE_API = 'https://api.twitter.com/1.1/'
@@ -64,18 +63,6 @@ class Application {
     if (data.errors) return Promise.reject(new Error(data.errors[0].message))
     this.token = data.access_token
     return Promise.resolve(this)
-  }
-
-  // Internal URL constructor helper method
-  buildURL(url, params = {}, dotJSON) {
-    if (dotJSON && url !== AUTH_ENDPOINT) url += '.json'
-
-    url = new URL(url, BASE_API)
-    for (const [key, value] of Object.entries(params)) {
-      url.searchParams.append(key, value)
-    }
-
-    return url.toString()
   }
 }
 
