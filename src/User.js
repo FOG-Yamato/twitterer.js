@@ -67,15 +67,12 @@ class User {
     const base = Util.encodeAndJoin([method, url, encodedParams])
     const key = Util.encodeAndJoin([this.appSecret, this.userSecret])
 
-    const signature = crypto
+    const oauth_signature = crypto
       .createHmac('sha1', key)
       .update(base)
       .digest('base64')
 
-    const result = Util.encodeAndJoin(
-      { ...oauthBase, oauth_signature: signature },
-      ', '
-    )
+    const result = Util.encodeAndJoin({ ...oauthBase, oauth_signature }, ', ')
 
     return `OAuth ${result}`
   }
