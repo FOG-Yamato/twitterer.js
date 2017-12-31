@@ -61,7 +61,7 @@ class User {
       oauth_version: '1.0'
     }
 
-    Object.assign(params, oauthBase)
+    params = { ...params, ...oauthBase }
 
     const encodedParams = Util.encodeAndJoin(Util.sortByKeys(params))
     const base = Util.encodeAndJoin([method, url, encodedParams])
