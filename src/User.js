@@ -73,10 +73,7 @@ class User {
     const stream = await this.post(endpoint, {
       ...opts,
       parse: 'stream',
-      api: 'stream',
-      headers: {
-        'Keep-Alive': 'timeout=15'
-      }
+      api: 'stream'
     })
     return new TweetStream(stream)
   }
