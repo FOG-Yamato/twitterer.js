@@ -1,4 +1,5 @@
 const CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+const { URL } = require('url')
 
 class Util {
   constructor() {
@@ -40,6 +41,19 @@ class Util {
     return Object.entries(obj)
       .map(pair => pair.map(encodeURIComponent).join('='))
       .join(separator)
+  }
+
+  static buildURL(endpoint, base, params = {}, dotJSON) {
+    if (dotJSON) endpoint += '.json'
+
+    const url = new URL(endpoint, base)
+    const rawURL = url.href
+
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.append(key, value)
+    }
+
+    return { url: url.href, rawURL }
   }
 }
 

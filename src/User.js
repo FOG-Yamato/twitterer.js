@@ -1,4 +1,3 @@
-const { URL } = require('url')
 const crypto = require('crypto')
 const fetch = require('node-fetch')
 const Util = require('./Util')
@@ -27,28 +26,17 @@ class User {
 
   //Internal request method
   async request(endpoint, opts = {}) {
-    const { url, href } = this.buildURL(endpoint, opts.params, true)
+    const { url, rawURL } = Util.buildURL(endpoint, BASE_API, opts.params, true)
 
     opts.headers = {
       ...opts.headers,
-      Authorization: this.getAuth(opts.method || 'GET', href, opts.params),
+      Authorization: this.getAuth(opts.method || 'GET', rawURL, opts.params),
       'User-Agent': 'twitter.js',
       Accept: '*/*',
       Connection: 'close'
     }
 
     return fetch(url, opts).then(res => res.json())
-  }
-
-  buildURL(url, params = {}, dotJSON) {
-    if (dotJSON) url += '.json'
-
-    url = new URL(url, BASE_API)
-    for (const [key, value] of Object.entries(params)) {
-      url.searchParams.append(key, value)
-    }
-
-    return { url: url.toString(), href: url.href }
   }
 
   getAuth(method, url, params = {}) {
@@ -62,7 +50,6 @@ class User {
     }
 
     params = { ...params, ...oauthBase }
-
     const encodedParams = Util.encodeAndJoin(Util.sortByKeys(params))
     const base = Util.encodeAndJoin([method, url, encodedParams])
     const key = Util.encodeAndJoin([this.appSecret, this.userSecret])

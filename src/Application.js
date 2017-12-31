@@ -1,5 +1,6 @@
 const fetch = require('node-fetch')
 const { URL } = require('url')
+const { buildURL } = require('./Util')
 
 const BASE_API = 'https://api.twitter.com/1.1/'
 const AUTH_ENDPOINT = 'https://api.twitter.com/oauth2/token'
@@ -25,23 +26,26 @@ class Application {
 
   //Internal request method
   async request(endpoint, opts) {
-    if (endpoint !== AUTH_ENDPOINT) {
-      if (!this.token) {
-        try {
-          await this.auth()
-        } catch (err) {
-          return Promise.reject(err)
-        }
-      }
+    if (endpoint === AUTH_ENDPOINT) {
+      const { url } = buildURL(endpoint)
+      return fetch(url, opts).then(res => res.json())
+    }
 
-      opts.headers = {
-        ...opts.headers,
-        Authorization: `Bearer ${this.token}`,
-        'User-Agent': 'twitter.js'
+    if (!this.token) {
+      try {
+        await this.auth()
+      } catch (err) {
+        return Promise.reject(err)
       }
     }
 
-    const url = this.buildURL(endpoint, opts.params, true)
+    opts.headers = {
+      ...opts.headers,
+      Authorization: `Bearer ${this.token}`,
+      'User-Agent': 'twitter.js'
+    }
+
+    const { url } = buildURL(endpoint, BASE_API, opts.params, true)
     return fetch(url, opts).then(res => res.json())
   }
 
