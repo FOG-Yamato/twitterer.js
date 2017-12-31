@@ -1,8 +1,10 @@
 const crypto = require('crypto')
 const fetch = require('node-fetch')
 const Util = require('./Util')
+const TweetStream = require('./TweetStream')
 
 const BASE_API = 'https://api.twitter.com/1.1/'
+const STREAM_API = 'https://stream.twitter.com/1.1/'
 
 class User {
   constructor(appKey, appSecret, opts = {}) {
@@ -26,7 +28,8 @@ class User {
 
   //Internal request method
   async request(endpoint, opts = {}) {
-    const { url, rawURL } = Util.buildURL(endpoint, BASE_API, opts.params, true)
+    const api = opts.api === 'stream' ? STREAM_API : BASE_API
+    const { url, rawURL } = Util.buildURL(endpoint, api, opts.params, true)
 
     opts.headers = {
       ...opts.headers,
@@ -36,7 +39,9 @@ class User {
       Connection: 'close'
     }
 
-    return fetch(url, opts).then(res => res.json())
+    return fetch(url, opts).then(
+      res => (opts.parse === 'stream' ? res.body : res[opts.parse || 'json']())
+    )
   }
 
   getAuth(method, url, params = {}) {
@@ -62,6 +67,18 @@ class User {
     const result = Util.encodeAndJoin({ ...oauthBase, oauth_signature }, ', ')
 
     return `OAuth ${result}`
+  }
+
+  async fetchStream(endpoint, opts) {
+    const stream = await this.post(endpoint, {
+      ...opts,
+      parse: 'stream',
+      api: 'stream',
+      headers: {
+        'Keep-Alive': 'timeout=15'
+      }
+    })
+    return new TweetStream(stream)
   }
 }
 

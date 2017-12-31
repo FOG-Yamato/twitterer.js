@@ -45,7 +45,9 @@ class Application {
     }
 
     const { url } = buildURL(endpoint, BASE_API, opts.params, true)
-    return fetch(url, opts).then(res => res.json())
+    return fetch(url, opts).then(
+      res => (opts.parse === 'stream' ? res.body : res[opts.parse || 'json']())
+    )
   }
 
   // OAuth 2.0 authentication method
