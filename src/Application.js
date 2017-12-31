@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
 const { URL } = require('url')
 
-const TWITTER_API = 'https://api.twitter.com/1.1/'
+const BASE_API = 'https://api.twitter.com/1.1/'
 const AUTH_ENDPOINT = 'https://api.twitter.com/oauth2/token'
 
 class Application {
@@ -34,7 +34,11 @@ class Application {
         }
       }
 
-      opts.headers = { ...opts.headers, Authorization: `Bearer ${this.token}`, 'User-Agent': 'twitter.js' }
+      opts.headers = {
+        ...opts.headers,
+        Authorization: `Bearer ${this.token}`,
+        'User-Agent': 'twitter.js'
+      }
     }
 
     const url = this.buildURL(endpoint, opts.params, true)
@@ -49,8 +53,7 @@ class Application {
       body: 'grant_type=client_credentials',
       headers: {
         Authorization: `Basic ${encoded}`,
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8.',
-        'User-Agent': 'twitter.js'
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8.'
       }
     })
 
@@ -59,16 +62,13 @@ class Application {
     return Promise.resolve(this)
   }
 
-  // Internal URL contructor helper method
-  buildURL(url, params, dotJSON) {
+  // Internal URL constructor helper method
+  buildURL(url, params = {}, dotJSON) {
     if (dotJSON && url !== AUTH_ENDPOINT) url += '.json'
 
-    url = new URL(url, TWITTER_API)
-
-    if (params) {
-      for (const [key, value] of Object.entries(params)) {
-        url.searchParams.append(key, value)
-      }
+    url = new URL(url, BASE_API)
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.append(key, value)
     }
 
     return url.toString()
