@@ -8,19 +8,24 @@ class TweetStream extends EventEmitter {
   }
 
   listen() {
-    let payload = []
+    let payload = ''
 
     this.stream
       .on('data', data => {
         if (/^\s+$/.test(data)) return // Skip heartbeats
-        payload.push(data.toString())
+        payload += data.toString()
 
-        if (data.toString().endsWith('\r\n')) {
-          this.emit('tweet', JSON.parse(payload.join('')))
-          payload = []
+        if (payload.endsWith('\r\n')) {
+          this.emit('tweet', JSON.parse(payload))
+          payload = ''
         }
       })
       .once('end', () => this.emit('end'))
+  }
+
+  end() {
+    this.stream.removeAllListeners()
+    this.emit('end')
   }
 }
 
