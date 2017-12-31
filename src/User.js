@@ -72,11 +72,12 @@ class User {
       .update(base)
       .digest('base64')
 
-    const res = Util.encodeAndJoin(oauthBase, ', ').concat(
-      `, oauth_signature="${encodeURIComponent(signature)}"`
+    const result = Util.encodeAndJoin(
+      { ...oauthBase, oauth_signature: signature },
+      ', '
     )
 
-    return `OAuth ${res}`
+    return `OAuth ${result}`
   }
 }
 
