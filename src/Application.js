@@ -1,36 +1,28 @@
-const fetch = require('node-fetch')
-const { buildURL } = require('./Util')
-
-const BASE_API = 'https://api.twitter.com/1.1/'
-const AUTH_ENDPOINT = 'https://api.twitter.com/oauth2/token'
+const axios = require('axios')
 
 class Application {
-  constructor(key, secret) {
+  constructor(key, secret, token) {
     this.key = key
     this.secret = secret
-    this.token = null
+    this.token = token
+    this.api = token ? Application.generateAPI(token) : null
   }
 
-  get(endpoint, opts) {
-    return this.request(endpoint, opts)
+  get(url, opts) {
+    return this.request(url, opts)
   }
 
-  post(endpoint, opts) {
-    return this.request(endpoint, { ...opts, method: 'POST' })
+  post(url, opts) {
+    return this.request(url, { ...opts, method: 'post' })
   }
 
-  delete(endpoint, opts) {
-    return this.request(endpoint, { ...opts, method: 'DELETE' })
+  delete(url, opts) {
+    return this.request(url, { ...opts, method: 'delete' })
   }
 
   //Internal request method
-  async request(endpoint, opts) {
-    if (endpoint === AUTH_ENDPOINT) {
-      const { url } = buildURL(endpoint)
-      return fetch(url, opts).then(res => res.json())
-    }
-
-    if (!this.token) {
+  async request(url, opts) {
+    if (!this.api) {
       try {
         await this.auth()
       } catch (err) {
@@ -38,33 +30,41 @@ class Application {
       }
     }
 
-    opts.headers = {
-      ...opts.headers,
-      Authorization: `Bearer ${this.token}`,
-      'User-Agent': 'twitter.js'
-    }
-
-    const { url } = buildURL(endpoint, BASE_API, opts.params, true)
-    return fetch(url, opts).then(
-      res => (opts.parse === 'stream' ? res.body : res[opts.parse || 'json']())
-    )
+    if (!url.endsWith('.json')) url += '.json'
+    return this.api.request({ ...opts, url })
   }
 
   // OAuth 2.0 authentication method
   async auth() {
     const encoded = Buffer.from(`${this.key}:${this.secret}`).toString('base64')
 
-    const data = await this.post(AUTH_ENDPOINT, {
-      body: 'grant_type=client_credentials',
+    try {
+      const { data: { access_token } } = await axios.request({
+        method: 'post',
+        url: 'https://api.twitter.com/oauth2/token',
+        data: 'grant_type=client_credentials',
+        headers: {
+          Authorization: `Basic ${encoded}`,
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8.'
+        }
+      })
+
+      this.token = access_token
+      this.api = Application.generateAPI(access_token)
+      return this
+    } catch (err) {
+      return Promise.reject(err.response.data.errors[0])
+    }
+  }
+
+  static generateAPI(token) {
+    return axios.create({
+      baseURL: 'https://api.twitter.com/1.1/',
       headers: {
-        Authorization: `Basic ${encoded}`,
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8.'
+        Authorization: `Bearer ${token}`,
+        'User-Agent': 'twitter.js'
       }
     })
-
-    if (data.errors) return Promise.reject(new Error(data.errors[0].message))
-    this.token = data.access_token
-    return Promise.resolve(this)
   }
 }
 

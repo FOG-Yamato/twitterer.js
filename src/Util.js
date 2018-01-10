@@ -55,6 +55,10 @@ class Util {
 
     return { url: url.href, rawURL }
   }
+
+  static rawURL(url, base) {
+    return new URL(url.split('?')[0], base).toString()
+  }
 }
 
 module.exports = Util
