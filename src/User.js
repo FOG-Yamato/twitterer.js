@@ -70,12 +70,12 @@ class User {
   }
 
   async fetchStream(endpoint, opts) {
-    const stream = await this.post(endpoint, {
+    const { data } = await this.post(endpoint, {
       ...opts,
-      parse: 'stream',
+      responseType: 'stream',
       api: 'stream'
     })
-    return new TweetStream(stream)
+    return new TweetStream(data)
   }
 }
 
