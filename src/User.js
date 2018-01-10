@@ -1,10 +1,9 @@
 const crypto = require('crypto')
-const fetch = require('node-fetch')
 const Util = require('./Util')
 const TweetStream = require('./TweetStream')
 
-const BASE_API = 'https://api.twitter.com/1.1/'
-const STREAM_API = 'https://stream.twitter.com/1.1/'
+const baseAPI = Util.createAPI('https://api.twitter.com/1.1/')
+const streamAPI = Util.createAPI('https://stream.twitter.com/1.1/')
 
 class User {
   constructor(appKey, appSecret, opts = {}) {
@@ -14,34 +13,35 @@ class User {
     this.userSecret = opts.userSecret || null
   }
 
-  get(endpoint, opts) {
-    return this.request(endpoint, opts)
+  get(url, opts) {
+    return this.request(url, opts)
   }
 
-  post(endpoint, opts) {
-    return this.request(endpoint, { ...opts, method: 'POST' })
+  post(url, opts) {
+    return this.request(url, { ...opts, method: 'POST' })
   }
 
-  delete(endpoint, opts) {
-    return this.request(endpoint, { ...opts, method: 'DELETE' })
+  delete(url, opts) {
+    return this.request(url, { ...opts, method: 'DELETE' })
   }
 
   //Internal request method
-  async request(endpoint, opts = {}) {
-    const api = opts.api === 'stream' ? STREAM_API : BASE_API
-    const { url, rawURL } = Util.buildURL(endpoint, api, opts.params, true)
+  async request(url, opts = {}) {
+    const api = opts.api === 'stream' ? streamAPI : baseAPI
 
-    opts.headers = {
+    if (!url.endsWith('.json')) url += '.json'
+    const rawURL = Util.rawURL(url, api.defaults.baseURL)
+    const headers = {
       ...opts.headers,
-      Authorization: this.getAuth(opts.method || 'GET', rawURL, opts.params),
-      'User-Agent': 'twitter.js',
-      Accept: '*/*',
-      Connection: 'close'
+      Authorization: this.getAuth(opts.method || 'GET', rawURL, opts.params)
     }
 
-    return fetch(url, opts).then(
-      res => (opts.parse === 'stream' ? res.body : res[opts.parse || 'json']())
-    )
+    try {
+      const { data } = await api.request({ ...opts, headers, url })
+      return data
+    } catch (err) {
+      return Promise.reject(err.response.data.errors[0].message)
+    }
   }
 
   getAuth(method, url, params = {}) {

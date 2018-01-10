@@ -1,11 +1,12 @@
 const axios = require('axios')
+const { createAPI } = require('./Util')
 
 class Application {
   constructor(key, secret, token) {
     this.key = key
     this.secret = secret
     this.token = token
-    this.api = token ? Application.generateAPI(token) : null
+    this.api = token ? Application.createAPI(token) : null
   }
 
   get(url, opts) {
@@ -13,15 +14,15 @@ class Application {
   }
 
   post(url, opts) {
-    return this.request(url, { ...opts, method: 'post' })
+    return this.request(url, { ...opts, method: 'POST' })
   }
 
   delete(url, opts) {
-    return this.request(url, { ...opts, method: 'delete' })
+    return this.request(url, { ...opts, method: 'DELETE' })
   }
 
   //Internal request method
-  async request(url, opts) {
+  async request(url, opts = {}) {
     if (!this.api) {
       try {
         await this.auth()
@@ -31,7 +32,12 @@ class Application {
     }
 
     if (!url.endsWith('.json')) url += '.json'
-    return this.api.request({ ...opts, url })
+    try {
+      const { data } = await this.api.request({ ...opts, url })
+      return data
+    } catch (err) {
+      return Promise.reject(err.response.data.errors[0].message)
+    }
   }
 
   // OAuth 2.0 authentication method
@@ -40,7 +46,7 @@ class Application {
 
     try {
       const { data: { access_token } } = await axios.request({
-        method: 'post',
+        method: 'POST',
         url: 'https://api.twitter.com/oauth2/token',
         data: 'grant_type=client_credentials',
         headers: {
@@ -50,21 +56,15 @@ class Application {
       })
 
       this.token = access_token
-      this.api = Application.generateAPI(access_token)
+      this.api = Application.createAPI(access_token)
       return this
     } catch (err) {
       return Promise.reject(err.response.data.errors[0])
     }
   }
 
-  static generateAPI(token) {
-    return axios.create({
-      baseURL: 'https://api.twitter.com/1.1/',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'User-Agent': 'twitter.js'
-      }
-    })
+  static createAPI(token) {
+    return createAPI('https://api.twitter.com/1.1/', { token })
   }
 }
 

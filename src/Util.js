@@ -1,5 +1,6 @@
-const CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+const axios = require('axios')
 const { URL } = require('url')
+const CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
 class Util {
   constructor() {
@@ -43,21 +44,15 @@ class Util {
       .join(separator)
   }
 
-  static buildURL(endpoint, base, params = {}, dotJSON) {
-    if (dotJSON) endpoint += '.json'
-
-    const url = new URL(endpoint, base)
-    const rawURL = url.href
-
-    for (const [key, value] of Object.entries(params)) {
-      url.searchParams.append(key, value)
-    }
-
-    return { url: url.href, rawURL }
-  }
-
   static rawURL(url, base) {
     return new URL(url.split('?')[0], base).toString()
+  }
+
+  static createAPI(baseURL, opts = {}) {
+    const headers = { 'User-Agent': 'twitter.js' }
+    if (opts.token) headers['Authorization'] = `Bearer ${opts.token}`
+
+    return axios.create({ baseURL, headers })
   }
 }
 
