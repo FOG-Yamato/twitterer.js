@@ -49,10 +49,10 @@ class Util {
   }
 
   static createAPI(baseURL, opts = {}) {
-    const headers = { 'User-Agent': 'twitter.js' }
-    if (opts.token) headers['Authorization'] = `Bearer ${opts.token}`
+    const headers = { 'user-agent': 'twitter.js' }
+    if (opts.token) headers.authorization = `Bearer ${opts.token}`
 
-    return axios.create({ baseURL, headers })
+    return axios.create({ ...opts, baseURL, headers })
   }
 }
 

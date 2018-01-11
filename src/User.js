@@ -3,7 +3,9 @@ const Util = require('./Util')
 const TweetStream = require('./TweetStream')
 
 const baseAPI = Util.createAPI('https://api.twitter.com/1.1/')
-const streamAPI = Util.createAPI('https://stream.twitter.com/1.1/')
+const streamAPI = Util.createAPI('https://stream.twitter.com/1.1/', {
+  maxContentLength: Infinity
+})
 
 class User {
   constructor(appKey, appSecret, opts = {}) {
@@ -27,13 +29,13 @@ class User {
 
   //Internal request method
   async request(url, opts = {}) {
-    const api = opts.api === 'stream' ? streamAPI : baseAPI
+    const api = opts.api || baseAPI
 
     if (!url.endsWith('.json')) url += '.json'
     const rawURL = Util.rawURL(url, api.defaults.baseURL)
     const headers = {
       ...opts.headers,
-      Authorization: this.getAuth(opts.method || 'GET', rawURL, opts.params)
+      authorization: this.getAuth(opts.method || 'GET', rawURL, opts.params)
     }
 
     try {
@@ -70,12 +72,13 @@ class User {
   }
 
   async fetchStream(endpoint, opts) {
-    const { data } = await this.post(endpoint, {
+    const res = await this.post(endpoint, {
       ...opts,
       responseType: 'stream',
-      api: 'stream'
+      api: streamAPI
     })
-    return new TweetStream(data)
+
+    return new TweetStream(res)
   }
 }
 
