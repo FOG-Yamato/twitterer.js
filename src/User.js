@@ -3,9 +3,7 @@ const Util = require('./Util')
 const TweetStream = require('./TweetStream')
 
 const baseAPI = Util.createAPI('https://api.twitter.com/1.1/')
-const streamAPI = Util.createAPI('https://stream.twitter.com/1.1/', {
-  maxContentLength: Infinity
-})
+const streamAPI = Util.createAPI('https://stream.twitter.com/1.1/')
 
 class User {
   constructor(appKey, appSecret, opts = {}) {
