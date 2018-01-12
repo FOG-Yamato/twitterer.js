@@ -26,9 +26,7 @@ After creation, you may use the helper methods `get`, `post` and `delete` to hit
 exposed by the [Twitter API](https://developer.twitter.com/en/docs/api-reference-index).
 
 ```js
-app
-  .get('search/tweets', { params: { q: 'stuff' } })
-  .then(result => console.log(result))
+app.get('search/tweets', { params: { q: 'stuff' } }).then(console.log)
 ```
 
 **User**:
@@ -46,7 +44,7 @@ const user = new User({
 In this case, all keys are required.
 
 ```js
-user.get('account/settings').then(result => console.log(result))
+user.get('account/settings').then(console.log)
 ```
 
 ---
