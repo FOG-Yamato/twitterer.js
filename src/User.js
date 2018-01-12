@@ -6,11 +6,24 @@ const baseAPI = Util.createAPI('https://api.twitter.com/1.1/')
 const streamAPI = Util.createAPI('https://stream.twitter.com/1.1/')
 
 class User {
-  constructor(appKey, appSecret, opts = {}) {
-    this.appKey = appKey
-    this.appSecret = appSecret
-    this.userToken = opts.userToken || null
-    this.userSecret = opts.userSecret || null
+  constructor({ consumerKey, consumerSecret, accessToken, accessTokenSecret }) {
+    const allPresent = [
+      consumerKey,
+      consumerSecret,
+      accessToken,
+      accessTokenSecret
+    ].every(key => key)
+
+    if (!allPresent) {
+      throw new Error('All keys have to be provided.')
+    }
+
+    Object.assign(this, {
+      consumerKey,
+      consumerSecret,
+      accessToken,
+      accessTokenSecret
+    })
   }
 
   get(url, opts) {
@@ -46,18 +59,21 @@ class User {
 
   getAuth(method, url, params = {}) {
     const oauthBase = {
-      oauth_consumer_key: this.appKey,
+      oauth_consumer_key: this.consumerKey,
       oauth_nonce: Util.randomString(32),
       oauth_signature_method: 'HMAC-SHA1',
       oauth_timestamp: Math.floor(Date.now() / 1000),
-      oauth_token: this.userToken,
+      oauth_token: this.accessToken,
       oauth_version: '1.0'
     }
 
     params = { ...params, ...oauthBase }
     const encodedParams = Util.encodeAndJoin(Util.sortByKeys(params))
     const base = Util.encodeAndJoin([method, url, encodedParams])
-    const key = Util.encodeAndJoin([this.appSecret, this.userSecret])
+    const key = Util.encodeAndJoin([
+      this.consumerSecret,
+      this.accessTokenSecret
+    ])
 
     const oauth_signature = crypto
       .createHmac('sha1', key)
@@ -69,7 +85,7 @@ class User {
     return `OAuth ${result}`
   }
 
-  async fetchStream(endpoint, opts) {
+  async stream(endpoint, opts) {
     const res = await this.post(endpoint, {
       ...opts,
       responseType: 'stream',

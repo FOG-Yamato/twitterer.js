@@ -2,11 +2,9 @@ const axios = require('axios')
 const { createAPI } = require('./Util')
 
 class Application {
-  constructor(key, secret, token) {
-    this.key = key
-    this.secret = secret
-    this.token = token
-    this.api = token ? Application.createAPI(token) : null
+  constructor({ consumerKey, consumerSecret, accessToken }) {
+    Object.assign(this, { consumerKey, consumerSecret, accessToken })
+    this.api = this.accessToken && Application.createAPI(this.accessToken)
   }
 
   get(url, opts) {
@@ -42,7 +40,9 @@ class Application {
 
   // OAuth 2.0 authentication method
   async auth() {
-    const encoded = Buffer.from(`${this.key}:${this.secret}`).toString('base64')
+    const encoded = Buffer.from(
+      [this.consumerKey, this.consumerSecret].join(':')
+    ).toString('base64')
 
     try {
       const { data: { access_token } } = await axios.request({
@@ -55,11 +55,11 @@ class Application {
         }
       })
 
-      this.token = access_token
+      this.accessToken = access_token
       this.api = Application.createAPI(access_token)
       return this
     } catch (err) {
-      return Promise.reject(err.response.data.errors[0])
+      return Promise.reject(err.response.data.errors[0].message)
     }
   }
 
