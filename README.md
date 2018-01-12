@@ -3,9 +3,9 @@
 A light Twitter API wrapper that makes use of native promises.
 Works for both the User and Application only workflows.
 
-### Usage
-
 ---
+
+### Usage
 
 **Application**:
 
@@ -49,17 +49,17 @@ In this case, all keys are required.
 user.get('account/settings').then(result => console.log(result))
 ```
 
-### Making requests
-
 ---
+
+### Making requests
 
 We have used [Axios](https://github.com/axios/axios) as our HTTP client, so the [request API](https://github.com/axios/axios#request-config)
 is directly inherited from it. You can specify any of the configuration fields offered by Axios, however, some of them, such as the `Authorization` header,
 will be overwritten though.
 
-### Stream API
-
 ---
+
+### Stream API
 
 The User class offers access to the stream endpoints as follows:
 
@@ -74,7 +74,5 @@ This hasn't been tested much and is subject to changes.
 ---
 
 ### Contributing
-
----
 
 This a very early build of this package, so issues/PRs are most welcome.
