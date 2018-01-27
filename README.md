@@ -1,16 +1,22 @@
-# twitter.js
+# twitterer.js
 
 A light Twitter API wrapper that makes use of native promises.
 Works for both the User and Application only workflows.
 
 ---
 
-### Usage
+## Instalation
+
+```
+$ npm i twitterer.js
+```
+
+## Usage
 
 **Application**:
 
 ```js
-const { Application } = require('twitter.js')
+const { Application } = require('twitterer.js')
 const app = new Application({
   consumerKey: '-',
   consumerSecret: '-',
@@ -32,7 +38,7 @@ app.get('search/tweets', { params: { q: 'stuff' } }).then(console.log)
 **User**:
 
 ```js
-const { User } = require('twitter.js')
+const { User } = require('twitterer.js')
 const user = new User({
   consumerKey: '-',
   consumerSecret: '-',
@@ -49,7 +55,7 @@ user.get('account/settings').then(console.log)
 
 ---
 
-### Making requests
+## Making requests
 
 We have used [Axios](https://github.com/axios/axios) as our HTTP client, so the [request API](https://github.com/axios/axios#request-config)
 is directly inherited from it. You can specify any of the configuration fields offered by Axios, however, some of them, such as the `Authorization` header,
@@ -57,7 +63,7 @@ will be overwritten.
 
 ---
 
-### Stream API
+## Stream API
 
 The User class offers access to the stream endpoints as follows:
 
@@ -71,6 +77,6 @@ This hasn't been tested much and is subject to changes.
 
 ---
 
-### Contributing
+## Contributing
 
 This a very early build of this package, so issues/PRs are most welcome.
