@@ -1,6 +1,6 @@
 {
   "name": "twitterer.js",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "A Twitter API wrapper",
   "main": "./src/index",
   "scripts": {
