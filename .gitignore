@@ -19,4 +19,3 @@ deploy/deploy_key.pub
 docs/docs.json
 webpack/
 testing.js
-dist/
