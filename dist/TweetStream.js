@@ -9,6 +9,7 @@ class TweetStream extends events_1.EventEmitter {
         this.controller = null;
         this.timeout = null;
         this.flag = false;
+        this.collector = '';
     }
     async run(url, opts) {
         this.controller = new abort_controller_1.AbortController();
@@ -26,25 +27,31 @@ class TweetStream extends events_1.EventEmitter {
             for await (const payload of res.body) {
                 clearTimeout(this.timeout);
                 const initial = payload.toString('utf8');
+                console.log({ initial });
                 if (/^\s+$/.test(initial)) {
                     this.emit('heartbeat');
                 }
                 else {
-                    const processed = JSON.parse(initial.slice(0, initial.length - 2));
-                    if (processed.delete)
-                        this.emit('deleteTweet', processed.delete);
-                    else if (processed.retweeted_status)
-                        this.emit('retweet', processed);
-                    else if (processed.in_reply_to_status_id)
-                        this.emit('reply', processed);
-                    else
-                        this.emit('tweet', processed);
+                    this.collector += initial;
+                    if (this.collector.endsWith('\r\n')) {
+                        const processed = JSON.parse(this.collector);
+                        if (processed.delete)
+                            this.emit('deleteTweet', processed.delete);
+                        else if (processed.retweeted_status)
+                            this.emit('retweet', processed);
+                        else if (processed.in_reply_to_status_id)
+                            this.emit('reply', processed);
+                        else
+                            this.emit('tweet', processed);
+                        this.collector = '';
+                    }
                 }
                 this.timeout = setTimeout(() => {
                     this.flag = true;
                     this.end();
                 }, 60000);
             }
+            this.run(url, opts);
         }
         catch (e) {
             if (this.flag && e.type === 'aborted')
