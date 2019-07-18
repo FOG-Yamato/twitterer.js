@@ -1,9 +1,7 @@
 import { createHmac } from 'crypto';
-import { createAPI, encodeAndJoin, randomString, rawURL, sortByKeys } from './Util';
-// import { TweetStream } from './TweetStream';
-
-const baseAPI = createAPI('https://api.twitter.com/1.1/');
-// const streamAPI = createAPI('https://stream.twitter.com/1.1/');
+import { URL, URLSearchParams } from 'url';
+import fetch from 'node-fetch';
+import { TweetStream } from './TweetStream';
 
 export class User {
 
@@ -32,64 +30,72 @@ export class User {
 		});
 	}
 
-	public get(url: string, opts: object) {
+	public get(endpoint: string, opts: RequestOptions) {
+		const url = new URL(`https://api.twitter.com/1.1/${endpoint}.json`);
+		if (opts.params) url.search = new URLSearchParams(opts.params).toString();
 		return this.request(url, opts);
 	}
 
-	public post(url: string, opts: object) {
+	public post(endpoint: string, opts: RequestOptions) {
+		const url = new URL(`https://api.twitter.com/1.1/${endpoint}.json`);
+		if (opts.params) url.search = new URLSearchParams(opts.params).toString();
 		return this.request(url, { ...opts, method: 'POST' });
 	}
 
-	public delete(url: string, opts: object) {
+	public delete(endpoint: string, opts: RequestOptions) {
+		const url = new URL(`https://api.twitter.com/1.1/${endpoint}.json`);
+		if (opts.params) url.search = new URLSearchParams(opts.params).toString();
 		return this.request(url, { ...opts, method: 'DELETE' });
 	}
 
-	// Internal request method
-	private async request(url: string, opts: RequestOptions = {}) {
-		const api = opts.api || baseAPI;
-
-		if (!url.endsWith('.json')) url += '.json';
-		// TODO(FOG): Rewrite this
-		// const rawUrl = rawURL(url, api.defaults.baseURL);
-		const rawUrl = rawURL(url);
-		const headers = {
-			...opts.headers,
-			authorization: this.getAuth(opts.method || 'GET', rawUrl, opts.params)
-		};
-
-		try {
-			const { data } = await api.request({ ...opts, headers, url });
-			return data;
-		} catch (err) {
-			return Promise.reject(err.response.data.errors[0].message);
-		}
+	public async stream(endpoint: string, opts: RequestOptions) {
+		const url = new URL(`https://stream.twitter.com/1.1/${endpoint}.json`);
+		if (opts.params) url.search = new URLSearchParams(opts.params).toString();
+		const loader = new TweetStream();
+		loader.run(url, {
+			method: opts.method || 'POST',
+			headers: [
+				['User-Agent', 'twitterer.js'],
+				['Authorization', this.getAuth(opts.method || 'POST', url)]
+			]
+		});
+		return loader;
 	}
 
-	private getAuth(method: string, url: string, params = {}) {
+	// Internal request method
+	private async request(url: URL, opts: RequestOptions = {}) {
+
+		const response = await fetch(url.href, {
+			method: opts.method,
+			headers: [
+				['User-Agent', 'twitterer.js'],
+				['Authorization', this.getAuth(opts.method || 'GET', url)]
+			]
+		});
+		const data = await response.json();
+		if (!response.ok) throw data.error;
+		return data;
+	}
+
+	private getAuth(method: string, url: URL) {
 		const oauthBase = {
 			oauth_consumer_key: this.consumerKey,
-			oauth_nonce: randomString(32),
+			oauth_nonce: Array.from({ length: 32 }, () => Math.floor(Math.random() * 36).toString(36)).join(''),
 			oauth_signature_method: 'HMAC-SHA1',
 			oauth_timestamp: Math.floor(Date.now() / 1000),
 			oauth_token: this.accessToken,
 			oauth_version: '1.0'
 		};
 
-		params = { ...params, ...oauthBase };
-		const encodedParams = encodeAndJoin(sortByKeys(params));
-		const base = encodeAndJoin([method, url, encodedParams]);
-		const key = encodeAndJoin([
-			this.consumerSecret,
-			this.accessTokenSecret
-		]);
-
+		const encodedParams = new URLSearchParams(url.searchParams);
+		for (const [key, value] of Object.entries(oauthBase)) encodedParams.append(key, value.toString());
+		const base = [method, url.href.split('?')[0], encodedParams.toString()].map(encodeURIComponent).join('&');
+		const key = [this.consumerSecret, this.accessTokenSecret].map(encodeURIComponent).join('&');
 		const oauth_signature = createHmac('sha1', key)
 			.update(base)
 			.digest('base64');
 
-		const result = encodeAndJoin({ ...oauthBase, oauth_signature }, ', ');
-
-		return `OAuth ${result}`;
+		return `OAuth ${Object.entries({ ...oauthBase, oauth_signature }).map(r => r.map(encodeURIComponent).join('=')).join(', ')}`;
 	}
 
 	// TODO(FOG): This is shadowed up, what should I do? Also, public or private?

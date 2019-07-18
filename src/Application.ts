@@ -1,44 +1,47 @@
-import { createAPI } from './Util';
 import fetch from 'node-fetch';
+import { URL, URLSearchParams } from 'url';
 
 export class Application {
 
 	private consumerKey!: string;
 	private consumerSecret!: string;
 	private accessToken!: string;
-	// TODO(kyranet): Check the correct type for this
-	private api: any;
 
 	public constructor({ consumerKey, consumerSecret, accessToken }: ApplicationOptions) {
 		Object.assign(this, { consumerKey, consumerSecret, accessToken });
-		this.api = this.accessToken && Application.createAPI(this.accessToken);
 	}
 
-	public get(url: string, opts: RequestOptions) {
-		return this.request(url, opts);
+	public get(endpoint: string, opts: RequestOptions) {
+		return this.request(endpoint, opts);
 	}
 
-	public post(url: string, opts: RequestOptions) {
-		return this.request(url, { ...opts, method: 'POST' });
+	public post(endpoint: string, opts: RequestOptions) {
+		return this.request(endpoint, { ...opts, method: 'POST' });
 	}
 
-	public delete(url: string, opts: RequestOptions) {
-		return this.request(url, { ...opts, method: 'DELETE' });
+	public delete(endpoint: string, opts: RequestOptions) {
+		return this.request(endpoint, { ...opts, method: 'DELETE' });
 	}
 
 	// Internal request method
-	private async request(url: string, opts: RequestOptions = {}) {
-		if (!this.api) {
+	private async request(endpoint: string, opts: RequestOptions = {}) {
+		if (!this.accessToken) {
 			await this.auth();
 		}
 
-		if (!url.endsWith('.json')) url += '.json';
-		try {
-			const { data } = await this.api.request({ ...opts, url });
-			return data;
-		} catch (err) {
-			return Promise.reject(err.response.data.errors[0].message);
-		}
+		const url = new URL(`https://api.twitter.com/1.1/${endpoint}.json`);
+		if (opts.params) url.search = new URLSearchParams(opts.params).toString();
+
+		const response = await fetch(url.href, {
+			method: opts.method,
+			headers: [
+				['User-Agent', 'twitterer.js'],
+				['Authorization', `Bearer ${this.accessToken}`]
+			]
+		});
+		const data = await response.json();
+		if (!response.ok) throw data.error;
+		return data;
 	}
 
 	// OAuth 2.0 authentication method
@@ -51,6 +54,7 @@ export class Application {
 			method: 'POST',
 			body: 'grant_type=client_credentials',
 			headers: [
+				['User-Agent', 'twitterer.js'],
 				['Authorization', `Basic ${encoded}`],
 				['Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8.']
 			]
@@ -59,12 +63,7 @@ export class Application {
 		if (!response.ok) throw data.errors[0].message;
 
 		this.accessToken = data.access_token;
-		this.api = Application.createAPI(this.accessToken);
 		return this;
-	}
-
-	private static createAPI(token: string) {
-		return createAPI('https://api.twitter.com/1.1/', { token });
 	}
 
 }
@@ -75,4 +74,6 @@ interface ApplicationOptions {
 	accessToken: string;
 }
 
-interface RequestOptions {}
+interface RequestOptions {
+	[x: string]: any;
+}

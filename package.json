@@ -36,6 +36,7 @@
   },
   "homepage": "https://github.com/FOG-Yamato/twitter.js#readme",
   "dependencies": {
+    "abort-controller": "^3.0.0",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
