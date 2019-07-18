@@ -27,7 +27,6 @@ class TweetStream extends events_1.EventEmitter {
             for await (const payload of res.body) {
                 clearTimeout(this.timeout);
                 const initial = payload.toString('utf8');
-                console.log({ initial });
                 if (/^\s+$/.test(initial)) {
                     this.emit('heartbeat');
                 }
