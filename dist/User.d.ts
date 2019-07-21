@@ -13,8 +13,6 @@ export declare class User {
     private getAuth;
 }
 interface RequestOptions {
-    api?: any;
-    headers?: Record<string, string>;
     method?: string;
     params?: Record<string, string>;
 }

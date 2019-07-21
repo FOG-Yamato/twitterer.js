@@ -10,11 +10,12 @@ export class TweetStream extends EventEmitter {
 	private flag: boolean = false;
 	private collector: string = '';
 
-	public async run(url: URL, opts: any) {
+	public async run(url: URL, opts: any): Promise<void> {
 		this.controller = new AbortController();
 		const res = await fetch(url.href, { ...opts, signal: this.controller.signal });
 		if (res.status === 404) throw res.statusText;
-		if (!res.ok) throw await res.text();
+		if (!res.ok && res.status !== 401) throw await res.text();
+		if (res.status === 401) return this.run(url, opts);
 		this.emit('ready');
 		this.timeout = setTimeout(() => {
 			this.flag = true;
@@ -42,7 +43,7 @@ export class TweetStream extends EventEmitter {
 					this.end();
 				}, 60000);
 			}
-			this.run(url, opts);
+			return this.run(url, opts);
 		} catch (e) {
 			if (this.flag && e.type === 'aborted') this.run(url, opts);
 		}

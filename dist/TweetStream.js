@@ -16,8 +16,10 @@ class TweetStream extends events_1.EventEmitter {
         const res = await node_fetch_1.default(url.href, { ...opts, signal: this.controller.signal });
         if (res.status === 404)
             throw res.statusText;
-        if (!res.ok)
+        if (!res.ok && res.status !== 401)
             throw await res.text();
+        if (res.status === 401)
+            return this.run(url, opts);
         this.emit('ready');
         this.timeout = setTimeout(() => {
             this.flag = true;
@@ -50,7 +52,7 @@ class TweetStream extends events_1.EventEmitter {
                     this.end();
                 }, 60000);
             }
-            this.run(url, opts);
+            return this.run(url, opts);
         }
         catch (e) {
             if (this.flag && e.type === 'aborted')

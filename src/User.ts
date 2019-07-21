@@ -98,24 +98,10 @@ export class User {
 		return `OAuth ${Object.entries({ ...oauthBase, oauth_signature }).map(r => r.map(encodeURIComponent).join('=')).join(', ')}`;
 	}
 
-	// TODO(FOG): This is shadowed up, what should I do? Also, public or private?
-	// TODO(kyranet): Set the proper options interface for this
-	// private async stream(endpoint: string, opts: any) {
-	// 	const res = await this.post(endpoint, {
-	// 		...opts,
-	// 		responseType: 'stream',
-	// 		api: streamAPI
-	// 	});
-
-	// 	return new TweetStream(res);
-	// }
-
 }
 
 interface RequestOptions {
 	// TODO(kyranet): Define a better type
-	api?: any;
-	headers?: Record<string, string>;
 	method?: string;
 	params?: Record<string, string>;
 }
