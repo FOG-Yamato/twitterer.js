@@ -101,7 +101,6 @@ export class User {
 }
 
 interface RequestOptions {
-	// TODO(kyranet): Define a better type
 	method?: string;
 	params?: Record<string, string>;
 }
