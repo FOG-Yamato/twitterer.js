@@ -1,5 +1,4 @@
 {
-	"extends": "eslint-config-bamboo",
 	"compilerOptions": {
 		"sourceMap": true,
 		"declaration": true,
