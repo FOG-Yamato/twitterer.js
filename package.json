@@ -2,9 +2,13 @@
   "name": "twitterer.js",
   "version": "0.0.6",
   "description": "A Twitter API wrapper",
-  "main": "./src/index",
+  "main": "./dist/index",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublishOnly": "yarn build",
+    "lint": "eslint --ext ts src --fix",
+    "test:lint": "eslint --ext ts src",
+    "build": "tsc -p .",
+    "watch": "tsc -p . -w"
   },
   "repository": {
     "type": "git",
@@ -19,15 +23,27 @@
     "promise"
   ],
   "author": "FOG_Yamato",
+  "contributors": [
+    {
+      "name": "Antonio Román",
+      "email": "kyradiscord@gmail.com",
+      "url": "https://github.com/kyranet"
+    }
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/FOG-Yamato/twitter.js/issues"
   },
   "homepage": "https://github.com/FOG-Yamato/twitter.js#readme",
   "dependencies": {
-    "axios": "^0.18.1"
+    "abort-controller": "^3.0.0",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
-    "eslint": "^4.14.0"
+    "@types/node-fetch": "^2.5.8",
+    "@typescript-eslint/eslint-plugin": "^4.14.0",
+    "@typescript-eslint/parser": "^4.14.0",
+    "eslint": "^6.0.1",
+    "typescript": "^3.5.3"
   }
 }
